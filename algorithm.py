@@ -4,20 +4,18 @@ import time
 
 class Node:
     end_state = None
+    width, height = 0, 0
     factor = 1.0
 
-    def __init__(self, table: list, depth: int = 0, parent=None, direct=None) -> None:
-        length = math.sqrt(len(table))
-        if int(length) - length >= 10e-5:
-            raise Exception('len(self._table) is not a square number')
+    def __init__(self, table: list, x: int = 0, y: int = 0, depth: int = 0, parent=None, direct=None) -> None:
         for i in range(len(table)):
             if i not in table:
                 raise Exception('table\'s elements are not correct')
-        self._len = int(length)
         self._table = table
         self._depth = depth
         self._parent = parent
         self._direct = direct
+        self._x, self._y = x, y
         self._f = self._F()
 
     def __repr__(self):
@@ -51,33 +49,31 @@ class Node:
         return self._direct
 
     def generate_nodes(self):
-        blank_index = self._table.index(0)
-        blank_x, blank_y = blank_index % self._len, blank_index // self._len
         table_list = []
-        if blank_x > 0:
-            table_list.append(Node(self._move(blank_x, blank_y, 'l'), self._depth + 1, self, 'l'))
-        if blank_x < self._len - 1:
-            table_list.append(Node(self._move(blank_x, blank_y, 'r'), self._depth + 1, self, 'r'))
-        if blank_y > 0:
-            table_list.append(Node(self._move(blank_x, blank_y, 'u'), self._depth + 1, self, 'u'))
-        if blank_y < self._len - 1:
-            table_list.append(Node(self._move(blank_x, blank_y, 'd'), self._depth + 1, self, 'd'))
+        if self._x > 0:
+            table_list.append(Node(self._move('l'), self._x - 1, self._y, self._depth + 1, self, 'l'))
+        if self._x < self.width - 1:
+            table_list.append(Node(self._move('r'), self._x + 1, self._y, self._depth + 1, self, 'r'))
+        if self._y > 0:
+            table_list.append(Node(self._move('u'), self._x, self._y - 1, self._depth + 1, self, 'u'))
+        if self._y < self.height - 1:
+            table_list.append(Node(self._move('d'), self._x, self._y + 1, self._depth + 1, self, 'd'))
         return table_list
 
-    def _move(self, blank_x, blank_y, direction):
+    def _move(self, direction):
         new_table = self._table.copy()
         if direction == 'u':
-            new_table[blank_x + blank_y * self._len], new_table[blank_x + (blank_y - 1) * self._len] = \
-                new_table[blank_x + (blank_y - 1) * self._len], new_table[blank_x + blank_y * self._len]
+            new_table[self._x + self._y * self.width], new_table[self._x + (self._y - 1) * self.width] = \
+                new_table[self._x + (self._y - 1) * self.width], new_table[self._x + self._y * self.width]
         if direction == 'd':
-            new_table[blank_x + blank_y * self._len], new_table[blank_x + (blank_y + 1) * self._len] = \
-                new_table[blank_x + (blank_y + 1) * self._len], new_table[blank_x + blank_y * self._len]
+            new_table[self._x + self._y * self.width], new_table[self._x + (self._y + 1) * self.width] = \
+                new_table[self._x + (self._y + 1) * self.width], new_table[self._x + self._y * self.width]
         if direction == 'l':
-            new_table[blank_x + blank_y * self._len], new_table[(blank_x - 1) + blank_y * self._len] = \
-                new_table[(blank_x - 1) + blank_y * self._len], new_table[blank_x + blank_y * self._len]
+            new_table[self._x + self._y * self.width], new_table[(self._x - 1) + self._y * self.width] = \
+                new_table[(self._x - 1) + self._y * self.width], new_table[self._x + self._y * self.width]
         if direction == 'r':
-            new_table[blank_x + blank_y * self._len], new_table[(blank_x + 1) + blank_y * self._len] = \
-                new_table[(blank_x + 1) + blank_y * self._len], new_table[blank_x + blank_y * self._len]
+            new_table[self._x + self._y * self.width], new_table[(self._x + 1) + self._y * self.width] = \
+                new_table[(self._x + 1) + self._y * self.width], new_table[self._x + self._y * self.width]
         return new_table
 
     def compare_node(self, node):
@@ -107,9 +103,6 @@ def Manhattan_distance(a: list, b: list):
     a_len, b_len = len(a), len(b)
     if a_len != b_len:
         raise Exception('len(a) is not equal to len(b)')
-    width = math.sqrt(a_len)
-    if int(width) - width >= 10e-5:
-        raise Exception('len(a) is not a square number')
     # Manhattan Distance
     a_index = [a.index(i) for i in range(1, a_len)]
     b_index = [b.index(i) for i in range(1, a_len)]
@@ -124,8 +117,10 @@ def Manhattan_distance(a: list, b: list):
 
 def find_best_path(start_state, end_state):
     start = time.perf_counter()
+    blank_pos = start_state.index(0)
+    blank_x, blank_y = blank_pos % Node.width, blank_pos // Node.width
     Node.end_state = end_state
-    root_node = Node(start_state, 0)
+    root_node = Node(start_state, blank_x, blank_y, 0)
     opened_dict, closed_dict = {}, {}
     opened_dict[str(start_state)] = root_node
     while(1):
@@ -167,6 +162,7 @@ if __name__ == '__main__':
     # end_state = [1, 2, 3, 8, 0, 4, 7, 6, 5]
 
     Node.factor = 1.5
+    Node.width, Node.height = 4, 4
 
     final_node = find_best_path(start_state, end_state)
     path_list = []
