@@ -21,33 +21,6 @@ class Node:
     def __repr__(self):
         return str(self._table) + ' -> ' + str(self._f)
 
-    def get_parent(self):
-        return self._parent
-
-    def set_parent(self, parent):
-        self._parent = parent
-
-    def get_table(self):
-        return self._table
-
-    def set_table(self, table):
-        self._table = table
-
-    def get_depth(self):
-        return self._depth
-
-    def set_depth(self, depth):
-        self._depth = depth
-
-    def reset_f(self):
-        self._F()
-
-    def get_f(self):
-        return self._f
-
-    def get_direction(self):
-        return self._direct
-
     def generate_nodes(self):
         table_list = []
         if self._x > 0:
@@ -76,20 +49,8 @@ class Node:
                 new_table[(self._x + 1) + self._y * self.width], new_table[self._x + self._y * self.width]
         return new_table
 
-    def compare_node(self, node):
-        if self.get_table() == node.get_table():
-            return True
-        else:
-            return False
-
-    def compare_table(self, table):
-        if self.get_table() == table:
-            return True
-        else:
-            return False
-
     def _H(self, end_state):
-        return Manhattan_distance(self.get_table(), end_state)
+        return Manhattan_distance(self._table, end_state)
 
     def _G(self):
         return self._depth
@@ -116,30 +77,30 @@ def Manhattan_distance(a: list, b: list):
 
 
 def find_best_path(start_state, end_state):
-    start = time.perf_counter()
     blank_pos = start_state.index(0)
     blank_x, blank_y = blank_pos % Node.width, blank_pos // Node.width
     Node.end_state = end_state
     root_node = Node(start_state, blank_x, blank_y, 0)
     opened_dict, closed_dict = {}, {}
     opened_dict[str(start_state)] = root_node
+    start = time.perf_counter()
     while(1):
         if len(opened_dict) == 0:
             raise Exception('>>> No result <<<')
-        f_dict = {opened_dict[table].get_f(): table for table in opened_dict}
+        f_dict = {opened_dict[table]._f: table for table in opened_dict}
         min_key = f_dict[min(f_dict.keys())]
         selected_node = opened_dict.pop(str(min_key))
         closed_dict[str(min_key)] = selected_node
-        if selected_node.compare_table(end_state):
+        if selected_node._table == end_state:
             end = time.perf_counter()
-            print('time: {:.4f} s'.format(end - start))
+            print('\ntime: {:.4f} s'.format(end - start))
             return selected_node
         new_nodes = selected_node.generate_nodes()
         for node in new_nodes:
-            node_table = node.get_table()
+            node_table = node._table
             node_key = str(node_table)
             # if node_key in opened_dict:
-            #     if node.get_f()>=opened_dict[node_key].get_f():
+            #     if node._f>=opened_dict[node_key]._f:
             #         opened_dict[node_key]=node
             # if node_key not in opened_dict and node_key not in closed_dict:
             #     opened_dict[node_key] = node
@@ -147,28 +108,28 @@ def find_best_path(start_state, end_state):
             if node_key not in opened_dict and node_key not in closed_dict:
                 opened_dict[node_key] = node
             else:
-                if (node_key in opened_dict and node.get_f() >= opened_dict[node_key].get_f()) or (node_key in closed_dict and node.get_f() >= closed_dict[node_key].get_f()):
+                if (node_key in opened_dict and node._f >= opened_dict[node_key]._f) or (node_key in closed_dict and node._f >= closed_dict[node_key]._f):
                     continue
                 opened_dict[node_key] = node
                 if node_key in closed_dict.keys():
                     closed_dict.pop(node_key)
+        print('\ropen_list: {}, close_list: {}'.format(len(opened_dict),len(closed_dict)),end='')
 
 
 if __name__ == '__main__':
     start_state = [11, 9, 4, 15, 1, 3, 0, 12, 7, 5, 8, 6, 13, 2, 10, 14]
+    # start_state = [0, 15, 8, 3, 12, 11, 7, 4, 14, 10, 6, 5, 9, 13, 2, 1]
+    # start_state = [0, 15, 8, 13, 12, 11, 3, 7, 14, 9, 6, 2, 4, 10, 5, 1]
     end_state = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]
 
-    # start_state = [2, 8, 3, 1, 0, 4, 7, 6, 5]
-    # end_state = [1, 2, 3, 8, 0, 4, 7, 6, 5]
-
-    Node.factor = 1.5
+    Node.factor = 1
     Node.width, Node.height = 4, 4
 
     final_node = find_best_path(start_state, end_state)
     path_list = []
     while(1):
-        if final_node.get_direction() == None:
+        if final_node._direct == None:
             break
-        path_list.insert(0, final_node.get_direction())
-        final_node = final_node.get_parent()
+        path_list.insert(0, final_node._direct)
+        final_node = final_node._parent
     print('path:', '-'.join(path_list), '\npath_len:', len(path_list))
