@@ -8,13 +8,7 @@ class Node:
     extend_num = 0
 
     def __init__(self, table: list, x: int = -1, y: int = -1, depth: int = 0, parent=None, direct=None) -> None:
-        self.table = table
-        self.depth = depth
-        self.parent = parent
-        self.direct = direct
-        self.f = self.F()
         self.x, self.y = -1, -1
-        self.id = '-'.join(map(str, table))
         if Node.width == Node.height == 0:
             Node.width, Node.height = len(table), len(table[0])
         if x != -1 and y != -1:
@@ -24,22 +18,31 @@ class Node:
                 for j in range(Node.height):
                     if table[i][j] == 0:
                         self.x, self.y = i, j
+        self.table = table
+        self.depth = depth
+        self.parent = parent
+        self.direct = direct
+        self.id = '-'.join(map(str, table))
+        self.f = self.F()
 
     def __eq__(self, other):
-        return self.id == other.id
+        return self.id == other.id if other is not None else False
 
     def __lt__(self, other):
         return self.f < other.f
+
+    def __repr__(self) -> str:
+        return str(self.f)
 
     def extend(self):
         table_list = []
         if self.x > 0:
             table_list.append(Node(self.move('UP'), self.x - 1, self.y, self.depth + 1, self, 'UP'))
-        if self.x < self.width - 1:
+        if self.x < self.height - 1:
             table_list.append(Node(self.move('DOWN'), self.x + 1, self.y, self.depth + 1, self, 'DOWN'))
         if self.y > 0:
             table_list.append(Node(self.move('LEFT'), self.x, self.y - 1, self.depth + 1, self, 'LEFT'))
-        if self.y < self.height - 1:
+        if self.y < self.width - 1:
             table_list.append(Node(self.move('RIGHT'), self.x, self.y + 1, self.depth + 1, self, 'RIGHT'))
         Node.extend_num += len(table_list)
         return table_list
@@ -57,7 +60,8 @@ class Node:
         return new_table
 
     def F(self):
-        return 5*M_dist(self.table, Node.end_state, Node.width, Node.height) + self.depth
+        scale = 0.6
+        return scale * M_dist(self.table, Node.end_state, Node.width, Node.height) + (1 - scale) * self.depth
 
     def is_end(self):
         return self.table == Node.end_state
@@ -76,9 +80,10 @@ def M_dist(a: list, b: list, width: int, height: int):
 
 
 def astar(start_state, end_state):
-    root = Node(start_state, depth=0)
     Node.end_state = end_state
+    root = Node(start_state, depth=0)
     opened_list, closed_list = [], []
+    # use dict to find specific table
     opened_dict, closed_dict = dict(), dict()
     # insert root node into open_list
     insort(opened_list, root)
@@ -87,31 +92,38 @@ def astar(start_state, end_state):
         # opened_list is empty means NoAnswer
         if len(opened_list) == 0:
             raise Exception('NoAnswer')
+        # pop the first element from opened_list
         current = opened_list.pop(0)
         opened_dict.pop(current.id)
+        # push it into closed_list
         insort(closed_list, current)
         closed_dict[current.id] = current
+        # Is current node the answer
         if current.is_end():
             return current
+        # extend current node
         nodes = current.extend()
         for node in nodes:
             if node.id not in closed_dict:
                 if node.id not in opened_dict:
+                    # node is in neither opened_list nor closed_list
                     insort(opened_list, node)
                     opened_dict[node.id] = node
                 else:
-                    index = opened_list.index(node)
-                    old = opened_list[index]
+                    # node is in opened_list
+                    old = opened_dict[node.id]
                     if node.f < old.f:
-                        opened_list.pop(index)
+                        # refresh table's node
+                        opened_list.remove(old)
                         insort(opened_list, node)
                         opened_dict[node.id] = node
             else:
+                # node is in closed_list
                 closed_list.remove(node)
                 closed_dict.pop(node.id)
                 insort(opened_list, node)
                 opened_dict[node.id] = node
-        print('\ropen_list: {}, close_list: {}, extened: {}'.format(len(opened_list), len(closed_list), Node.extend_num), end='')
+        print('\ropen_list: {}, close_list: {}, extened: {}, current depth: {}'.format(len(opened_list), len(closed_list), Node.extend_num, current.depth), end='')
 
 
 def get_path(final_node):
@@ -139,7 +151,8 @@ def print_path(path_list):
 
 
 if __name__ == '__main__':
-    start_state = [[11, 9, 4, 15], [1, 3, 0, 12], [7, 5, 8, 6], [13, 2, 10, 14]] # ppt
+    start_state = [[11, 9, 4, 15], [1, 3, 0, 12], [7, 5, 8, 6], [13, 2, 10, 14]]  # ppt
+    # start_state = [[11, 5, 9, 13], [2, 6, 10, 14], [3, 7, 0, 15], [4, 8, 12, 1]]  # impossible
     # start_state = [[2, 5, 4, 8], [1, 7, 0, 3], [10, 6, 15, 14], [9, 13, 12, 11]]  # very hard
     # start_state = [[5, 1, 2, 4], [9, 6, 3, 8], [13, 15, 10, 11], [0, 14, 7, 12]]  # hard
     end_state = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]]
