@@ -1,5 +1,6 @@
 from bisect import insort
 import copy
+import time
 
 
 class Node:
@@ -80,6 +81,7 @@ def M_dist(a: list, b: list, width: int, height: int):
 
 
 def astar(start_state, end_state):
+    start_time=time.perf_counter_ns()
     Node.end_state = end_state
     root = Node(start_state, depth=0)
     opened_list, closed_list = [], []
@@ -100,6 +102,7 @@ def astar(start_state, end_state):
         closed_dict[current.id] = current
         # Is current node the answer
         if current.is_end():
+            print('\nUsing Time: {} ms'.format((time.perf_counter_ns()-start_time)/1000000))
             return current
         # extend current node
         nodes = current.extend()
