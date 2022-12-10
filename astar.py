@@ -123,7 +123,7 @@ def astar(start_state, end_state):
                 closed_dict.pop(node.id)
                 insort(opened_list, node)
                 opened_dict[node.id] = node
-        print('\ropen_list: {}, close_list: {}, extened: {}, current depth: {}'.format(len(opened_list), len(closed_list), Node.extend_num, current.depth), end='')
+        print('\ropen_list: {}, closed_list: {}, extended: {}, current depth: {}'.format(len(opened_list), len(closed_list), Node.extend_num, current.depth), end='')
 
 
 def get_path(final_node):
