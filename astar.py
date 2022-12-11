@@ -70,11 +70,11 @@ class Node:
 
 def M_dist(a: list, b: list, width: int, height: int):
     a_dict, total = dict(), 0
-    for i in range(width):
-        for j in range(height):
+    for i in range(height):
+        for j in range(width):
             a_dict[a[i][j]] = (i, j)
-    for i in range(width):
-        for j in range(height):
+    for i in range(height):
+        for j in range(width):
             ax, ay = a_dict[b[i][j]]
             total += (abs(i - ax) + abs(j - ay))
     return total
