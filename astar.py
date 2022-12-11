@@ -7,6 +7,7 @@ class Node:
     end_state = None
     width, height = 0, 0
     extend_num = 0
+    scale = 0.6
 
     def __init__(self, table: list, x: int = -1, y: int = -1, depth: int = 0, parent=None, direct=None) -> None:
         self.x, self.y = -1, -1
@@ -61,8 +62,7 @@ class Node:
         return new_table
 
     def F(self):
-        scale = 0.6
-        return scale * M_dist(self.table, Node.end_state, Node.width, Node.height) + (1 - scale) * self.depth
+        return Node.scale * M_dist(self.table, Node.end_state, Node.width, Node.height) + (1 - Node.scale) * self.depth
 
     def is_end(self):
         return self.table == Node.end_state
@@ -80,8 +80,34 @@ def M_dist(a: list, b: list, width: int, height: int):
     return total
 
 
-def astar(start_state, end_state):
-    start_time=time.perf_counter_ns()
+def E_dist(a: list, b: list, width: int, height: int):
+    a_dict, total = dict(), 0
+    for i in range(height):
+        for j in range(width):
+            a_dict[a[i][j]] = (i, j)
+    for i in range(height):
+        for j in range(width):
+            ax, ay = a_dict[b[i][j]]
+            total += ((i - ax)**2 + (j - ay)**2)
+    return total
+
+
+def E_count(a: list, b: list, width: int, height: int):
+    a_dict, total = dict(), 0
+    for i in range(height):
+        for j in range(width):
+            a_dict[a[i][j]] = (i, j)
+    for i in range(height):
+        for j in range(width):
+            ax, ay = a_dict[b[i][j]]
+            if i != ax or j != ay:
+                total += 1
+    return total
+
+
+def astar(start_state, end_state, revisit=True):
+    start_time = time.perf_counter_ns()
+    Node.scale = 0.6
     Node.end_state = end_state
     root = Node(start_state, depth=0)
     opened_list, closed_list = [], []
@@ -102,7 +128,7 @@ def astar(start_state, end_state):
         closed_dict[current.id] = current
         # Is current node the answer
         if current.is_end():
-            print('\nUsing Time: {} ms'.format((time.perf_counter_ns()-start_time)/1000000))
+            print('\nUsing Time: {} ms'.format((time.perf_counter_ns() - start_time) / 1000000))
             return current
         # extend current node
         nodes = current.extend()
@@ -121,6 +147,8 @@ def astar(start_state, end_state):
                         insort(opened_list, node)
                         opened_dict[node.id] = node
             else:
+                if not revisit:
+                    continue
                 # node is in closed_list
                 closed_list.remove(node)
                 closed_dict.pop(node.id)
@@ -163,6 +191,6 @@ if __name__ == '__main__':
     # start_state = [[2, 8, 3], [1, 0, 4], [7, 6, 5]]
     # end_state = [[1, 2, 3], [8, 0, 4], [7, 6, 5]]
 
-    final_node = astar(start_state, end_state)
+    final_node = astar(start_state, end_state, revisit=False)
     path_list = get_path(final_node)
     print_path(path_list)
