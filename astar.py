@@ -107,7 +107,7 @@ def E_count(a: list, b: list, width: int, height: int):
 
 def astar(start_state, end_state, revisit=True):
     start_time = time.perf_counter_ns()
-    Node.scale = 0.6
+    Node.scale = 0.55
     Node.end_state = end_state
     root = Node(start_state, depth=0)
     opened_list, closed_list = [], []
@@ -128,7 +128,8 @@ def astar(start_state, end_state, revisit=True):
         closed_dict[current.id] = current
         # Is current node the answer
         if current.is_end():
-            print('\nUsing Time: {} ms'.format((time.perf_counter_ns() - start_time) / 1000000))
+            # TODO
+            # print('\nUsing Time: {} ms'.format((time.perf_counter_ns() - start_time) / 1000000))
             return current
         # extend current node
         nodes = current.extend()
@@ -154,7 +155,8 @@ def astar(start_state, end_state, revisit=True):
                 closed_dict.pop(node.id)
                 insort(opened_list, node)
                 opened_dict[node.id] = node
-        print('\ropen_list: {}, closed_list: {}, extended: {}, current depth: {}'.format(len(opened_list), len(closed_list), Node.extend_num, current.depth), end='')
+        # TODO
+        # print('\ropen_list: {}, closed_list: {}, extended: {}, current depth: {}'.format(len(opened_list), len(closed_list), Node.extend_num, current.depth), end='')
 
 
 def get_path(final_node):
